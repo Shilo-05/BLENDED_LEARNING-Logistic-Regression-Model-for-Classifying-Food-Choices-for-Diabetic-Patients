@@ -1,10 +1,7 @@
-# BLENDED_LEARNING
 # Implementation of Logistic Regression Model for Classifying Food Choices for Diabetic Patients
 
-```
-Developed by: Oswald Shilo
-RegisterNumber:  212223040139
-```
+### Developed by: Oswald Shilo
+### RegisterNumber: 212223040139
 
 
 ## AIM:
@@ -15,101 +12,98 @@ To implement a logistic regression model to classify food items for diabetic pat
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1. **Load the Dataset**  
-   Import and load the dataset for analysis.
+1. **Import Libraries**:  
+   - Import pandas for data manipulation, scikit-learn for modeling and evaluation, and seaborn and matplotlib for visualization.  
 
-2. **Data Preprocessing**  
-   Clean and preprocess the data to ensure consistency and accuracy.
+2. **Dataset Loading**:  
+   - Load the dataset from the specified URL.  
 
-3. **Split Data into Training and Testing Sets**  
-   Divide the dataset into training and testing subsets for model validation.
+3. **Dataset Inspection**:  
+   - Examine the dataset by displaying basic information and previewing the data to understand its structure.  
 
-4. **Train Logistic Regression Model**  
-   Use the training data to fit and train a logistic regression model.
+4. **Target Variable Encoding**:  
+   - Convert the `class` column into a binary variable indicating whether a patient is diabetic.  
 
-5. **Generate Predictions**  
-   Apply the trained model to predict outcomes on the testing data.
+5. **Feature and Target Definition**:  
+   - Separate the dataset into the feature matrix (X) and target variable (y).  
 
-6. **Evaluate Model Performance**  
-   Assess the model’s accuracy and performance metrics.
+6. **Data Splitting**:  
+   - Divide the data into training and testing subsets with an 80-20 split.  
 
-7. **Visualize Results**  
-   Create visualizations to interpret and present the model's outcomes.
+7. **Model Training**:  
+   - Train a Logistic Regression model using the training data.  
 
-8. **Make Predictions on New Data**  
-   Utilize the trained model to make predictions on fresh or unseen data.
+8. **Prediction Generation**:  
+   - Use the trained model to predict labels for the test dataset.  
+
+9. **Model Evaluation**:  
+   - Assess model performance by calculating accuracy, precision, recall, F1-score, and by generating a classification report.  
+
+10. **Confusion Matrix Visualization**:  
+   - Plot a heatmap of the confusion matrix to visualize the model’s evaluation results.  
 
 ## Program:
 ```
+# Program to implement Logistic Regression for classifying food choices based on nutritional information.
 
-/*
-Program to implement Logistic Regression for classifying food choices based on nutritional information.
 # Importing necessary libraries
 import pandas as pd
-import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
 import seaborn as sns
+import matplotlib.pyplot as plt
 
 # Load the dataset
 url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBM-ML241EN-SkillsNetwork/labs/datasets/food_items.csv"
-data = pd.read_csv(url)
+df = pd.read_csv(url)
 
-# Encoding the target variable
-label_encoder = LabelEncoder()
-data['class'] = label_encoder.fit_transform(data['class'])
+# Inspect the dataset
+print("Dataset Overview:")
+print(df.head())
+print("\nDataset Info:")
+print(df.info())
 
-# Selecting features and target
-X = data.drop(columns=['class'])
-y = data['class']
+# Encode the target column ('class') into binary labels
+# Assuming 'Diabetic' means classifying 'In Moderation' as 1 (diabetic-friendly) and others as 0
+df['class'] = df['class'].str.strip("'")  # Remove surrounding quotes
+df['Diabetic'] = df['class'].apply(lambda x: 1 if x == 'In Moderation' else 0)
 
-# Split the data into training and testing sets
+# Define features and target
+X = df.drop(columns=['class', 'Diabetic'])  # Features
+y = df['Diabetic']  # Target variable
+
+# Split the dataset into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Feature Scaling using StandardScaler
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test = scaler.transform(X_test)
+# Train the Logistic Regression model
+log_reg = LogisticRegression(max_iter=1000, random_state=42)
+log_reg.fit(X_train, y_train)
 
-# Initialize and Train the Logistic Regression model with increased max_iter
-model = LogisticRegression(max_iter=2000)  # Increased max_iter for convergence
-model.fit(X_train, y_train)
+# Make predictions
+y_pred = log_reg.predict(X_test)
 
-# Model Prediction
-y_pred = model.predict(X_test)
+# Evaluate the model
+print("\nModel Evaluation:")
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("Precision:", precision_score(y_test, y_pred))
+print("Recall:", recall_score(y_test, y_pred))
+print("F1 Score:", f1_score(y_test, y_pred))
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred))
 
-# Model Evaluation
-accuracy = accuracy_score(y_test, y_pred)
+# Confusion Matrix
 conf_matrix = confusion_matrix(y_test, y_pred)
-class_report = classification_report(y_test, y_pred)
-
-print("Model Accuracy:", accuracy)
-print("Confusion Matrix:\n", conf_matrix)
-print("Classification Report:\n", class_report)
-
-# Confusion Matrix Plot
-plt.figure(figsize=(5, 4))
-sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='coolwarm', cbar=False, 
-            xticklabels=label_encoder.classes_, yticklabels=label_encoder.classes_)
-plt.title("Confusion Matrix")
-plt.xlabel("Predicted")
-plt.ylabel("Actual")
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=['Non-Diabetic', 'Diabetic'], yticklabels=['Non-Diabetic', 'Diabetic'])
+plt.title('Confusion Matrix')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
 plt.show()
-
-# Example prediction (Assuming a new food item with example values)
-new_food_item = pd.DataFrame([[120, 2, 0.5, 0.7, 0.1, 0, 15, 150, 20, 5, 10, 3, 100, 30, 40, 5, 0]], 
-                             columns=X.columns)  # Ensure columns match training data
-new_food_item_scaled = scaler.transform(new_food_item)
-pred_class = model.predict(new_food_item_scaled)
-
-print("Predicted Class for New Food Item:", label_encoder.inverse_transform(pred_class)[0])`
 ```
 
 ## Output:
-<img width="540" alt="Screenshot 2024-11-14 at 11 13 11 AM" src="https://github.com/user-attachments/assets/d23b1424-c5ac-49e0-adeb-3b0f4426476b">
+<img width="697" alt="Screenshot 2024-11-17 at 8 05 07 PM" src="https://github.com/user-attachments/assets/abde9e60-445e-46ab-98c0-a1a16969ed01">
 
 
 ## Result:
